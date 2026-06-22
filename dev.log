@@ -1,0 +1,286 @@
+
+> app-temp@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.3
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 4.2s
+ ○ Compiling /api/products ...
+ ✓ Compiled /api/products in 532ms (55 modules)
+ GET /api/products 200 in 711ms
+ ✓ Compiled /api/checkout in 224ms (57 modules)
+ POST /api/checkout 200 in 315ms
+ ✓ Compiled /api/eod in 90ms (59 modules)
+ GET /api/eod 200 in 120ms
+ ✓ Compiled in 1874ms (201 modules)
+ ✓ Compiled /api/products in 125ms (55 modules)
+ ⨯ Error: Cannot find module './chunks/vendor-chunks/next.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/app/api/products/route.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/server/dev/hot-middleware.js
+- /app/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at t.f.require (/app/.next/server/webpack-runtime.js:1:1416)
+    at /app/.next/server/webpack-runtime.js:1:889
+    at Array.reduce (<anonymous>)
+    at t.e (/app/.next/server/webpack-runtime.js:1:868)
+    at Array.map (<anonymous>)
+    at t.X (/app/.next/server/webpack-runtime.js:1:1189)
+    at /app/.next/server/app/api/products/route.js:83:47
+    at Object.<anonymous> (/app/.next/server/app/api/products/route.js:86:3)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object..js (node:internal/modules/cjs/loader:1838:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/app/node_modules/next/dist/server/require.js:109:84)
+    at /app/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/app/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/app/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/app/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/app/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/app/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/app/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/app/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/app/node_modules/next/dist/server/base-server.js:816:17)
+    at async /app/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/app/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/app/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/app/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/app/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/app/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/app/.next/server/webpack-runtime.js',
+    '/app/.next/server/app/api/products/route.js',
+    '/app/node_modules/next/dist/server/require.js',
+    '/app/node_modules/next/dist/server/load-components.js',
+    '/app/node_modules/next/dist/build/utils.js',
+    '/app/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/app/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/app/node_modules/next/dist/server/lib/router-server.js',
+    '/app/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/api/products'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1929ms (481 modules)
+ ⨯ Error: Cannot find module './chunks/vendor-chunks/next.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/pages/_document.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/server/dev/hot-middleware.js
+- /app/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at t.f.require (/app/.next/server/webpack-runtime.js:1:1416)
+    at /app/.next/server/webpack-runtime.js:1:889
+    at Array.reduce (<anonymous>)
+    at t.e (/app/.next/server/webpack-runtime.js:1:868)
+    at Array.map (<anonymous>)
+    at t.X (/app/.next/server/webpack-runtime.js:1:1189)
+    at /app/.next/server/pages/_document.js:63:47
+    at Object.<anonymous> (/app/.next/server/pages/_document.js:66:3)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object..js (node:internal/modules/cjs/loader:1838:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/app/node_modules/next/dist/server/require.js:109:84)
+    at /app/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/app/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/app/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/app/.next/server/webpack-runtime.js',
+    '/app/.next/server/pages/_document.js',
+    '/app/node_modules/next/dist/server/require.js',
+    '/app/node_modules/next/dist/server/load-components.js',
+    '/app/node_modules/next/dist/build/utils.js',
+    '/app/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/app/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/app/node_modules/next/dist/server/lib/router-server.js',
+    '/app/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ GET /api/products 500 in 3513ms
+ ⨯ Error: Cannot find module './chunks/vendor-chunks/next.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/pages/_document.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/server/dev/hot-middleware.js
+- /app/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at t.f.require (/app/.next/server/webpack-runtime.js:1:1416)
+    at /app/.next/server/webpack-runtime.js:1:889
+    at Array.reduce (<anonymous>)
+    at t.e (/app/.next/server/webpack-runtime.js:1:868)
+    at Array.map (<anonymous>)
+    at t.X (/app/.next/server/webpack-runtime.js:1:1189)
+    at /app/.next/server/app/api/products/route.js:83:47
+    at Object.<anonymous> (/app/.next/server/app/api/products/route.js:86:3)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object..js (node:internal/modules/cjs/loader:1838:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/app/node_modules/next/dist/server/require.js:109:84)
+    at /app/node_modules/next/dist/server/load-components.js:98:84
+    at async loadComponentsImpl (/app/node_modules/next/dist/server/load-components.js:98:26)
+    at async DevServer.findPageComponentsImpl (/app/node_modules/next/dist/server/next-server.js:710:36)
+    at async DevServer.findPageComponents (/app/node_modules/next/dist/server/dev/next-dev-server.js:577:20)
+    at async DevServer.renderPageComponent (/app/node_modules/next/dist/server/base-server.js:1910:24)
+    at async DevServer.renderToResponseImpl (/app/node_modules/next/dist/server/base-server.js:1962:32)
+    at async DevServer.pipeImpl (/app/node_modules/next/dist/server/base-server.js:920:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/app/node_modules/next/dist/server/next-server.js:272:17)
+    at async DevServer.handleRequestImpl (/app/node_modules/next/dist/server/base-server.js:816:17)
+    at async /app/node_modules/next/dist/server/dev/next-dev-server.js:339:20
+    at async Span.traceAsyncFn (/app/node_modules/next/dist/trace/trace.js:154:20)
+    at async DevServer.handleRequest (/app/node_modules/next/dist/server/dev/next-dev-server.js:336:24)
+    at async invokeRender (/app/node_modules/next/dist/server/lib/router-server.js:174:21)
+    at async handleRequest (/app/node_modules/next/dist/server/lib/router-server.js:353:24)
+    at async requestHandlerImpl (/app/node_modules/next/dist/server/lib/router-server.js:377:13)
+    at async Server.requestListener (/app/node_modules/next/dist/server/lib/start-server.js:141:13) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/app/.next/server/webpack-runtime.js',
+    '/app/.next/server/pages/_document.js',
+    '/app/node_modules/next/dist/server/require.js',
+    '/app/node_modules/next/dist/server/load-components.js',
+    '/app/node_modules/next/dist/build/utils.js',
+    '/app/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/app/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/app/node_modules/next/dist/server/lib/router-server.js',
+    '/app/node_modules/next/dist/server/lib/start-server.js'
+  ],
+  page: '/api/products'
+}
+ ⨯ Error: Cannot find module './chunks/vendor-chunks/next.js'
+Require stack:
+- /app/.next/server/webpack-runtime.js
+- /app/.next/server/pages/_document.js
+- /app/node_modules/next/dist/server/require.js
+- /app/node_modules/next/dist/server/load-components.js
+- /app/node_modules/next/dist/build/utils.js
+- /app/node_modules/next/dist/server/dev/hot-middleware.js
+- /app/node_modules/next/dist/server/dev/hot-reloader-webpack.js
+- /app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js
+- /app/node_modules/next/dist/server/lib/router-server.js
+- /app/node_modules/next/dist/server/lib/start-server.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1383:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at t.f.require (/app/.next/server/webpack-runtime.js:1:1416)
+    at /app/.next/server/webpack-runtime.js:1:889
+    at Array.reduce (<anonymous>)
+    at t.e (/app/.next/server/webpack-runtime.js:1:868)
+    at Array.map (<anonymous>)
+    at t.X (/app/.next/server/webpack-runtime.js:1:1189)
+    at /app/.next/server/pages/_document.js:63:47
+    at Object.<anonymous> (/app/.next/server/pages/_document.js:66:3)
+    at Module._compile (node:internal/modules/cjs/loader:1705:14)
+    at Object..js (node:internal/modules/cjs/loader:1838:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1463:12)
+    at mod.require (/app/node_modules/next/dist/server/require-hook.js:65:28)
+    at require (node:internal/modules/helpers:147:16)
+    at requirePage (/app/node_modules/next/dist/server/require.js:109:84)
+    at /app/node_modules/next/dist/server/load-components.js:72:65
+    at async Promise.all (index 0)
+    at async loadComponentsImpl (/app/node_modules/next/dist/server/load-components.js:71:33)
+    at async DevServer.findPageComponentsImpl (/app/node_modules/next/dist/server/next-server.js:710:36) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/app/.next/server/webpack-runtime.js',
+    '/app/.next/server/pages/_document.js',
+    '/app/node_modules/next/dist/server/require.js',
+    '/app/node_modules/next/dist/server/load-components.js',
+    '/app/node_modules/next/dist/build/utils.js',
+    '/app/node_modules/next/dist/server/dev/hot-middleware.js',
+    '/app/node_modules/next/dist/server/dev/hot-reloader-webpack.js',
+    '/app/node_modules/next/dist/server/lib/router-utils/setup-dev-bundler.js',
+    '/app/node_modules/next/dist/server/lib/router-server.js',
+    '/app/node_modules/next/dist/server/lib/start-server.js'
+  ]
+}
+ GET /api/products 500 in 51ms

@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  product_id        String            @id @default(uuid())
+  name              String
+  tier              String            @default("")
+  price             Float
+  barcode           String?           @unique
+  unit_cost         Float?
+  markup_percentage Float?
+  profit_margin     Float?
+  TransactionItem   TransactionItem[]
+
+  @@unique([name, tier])
+}
+
+model Transaction {
+  transaction_id String            @id @default(uuid())
+  timestamp      DateTime          @default(now())
+  device_id      String
+  attendant_id   String
+  total_amount   Float
+  items          TransactionItem[]
+  closed         Boolean           @default(false)
+}
+
+model TransactionItem {
+  id             String      @id @default(uuid())
+  transaction_id String
+  product_id     String
+  quantity       Int
+  price_at_sale  Float
+  subtotal       Float
+  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  product        Product     @relation(fields: [product_id], references: [product_id])
+}
