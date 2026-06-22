@@ -109,10 +109,13 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 text-black flex flex-col items-center p-4 sm:p-8">
-      <h1 className="text-2xl font-bold mb-6 text-center text-blue-600">Mhenching POS</h1>
-
-      <div className="w-full max-w-sm">
+    <div className="w-full max-w-md bg-surface-container-lowest flex flex-col flex-grow relative shadow-2xl md:my-stack-lg md:rounded-xl md:overflow-hidden md:min-h-[800px] mx-auto min-h-screen">
+      <header className="bg-surface-container-highest text-primary font-label-md text-label-md-mobile w-full top-0 flex justify-between items-center px-margin-mobile h-touch-target-min z-40 flat no shadows">
+        <span className="material-symbols-outlined text-primary" style={{fontVariationSettings: "'FILL' 1"}}>monitor_heart</span>
+        <span className="font-label-xl text-label-xl-mobile font-bold text-on-surface">Station: #042 | ID: OP-991</span>
+        <a href="/admin" className="flex items-center"><span className="material-symbols-outlined text-primary" style={{fontVariationSettings: "'FILL' 1"}}>account_circle</span></a>
+      </header>
+      <main className="flex-grow flex flex-col relative overflow-y-auto">
         <Scanner onScan={handleScan} />
         <ProductSearch products={products} onSelect={handleAddProduct} />
         <Cart
@@ -122,12 +125,8 @@ export default function Home() {
           onCheckout={handleCheckout}
           focusProductId={focusProductId}
         />
-        {isCheckoutLoading && <div className="text-center mt-2">Processing checkout...</div>}
-
-        <div className="mt-8 text-center">
-            <a href="/admin" className="text-sm text-blue-500 underline">Admin Dashboard</a>
-        </div>
-      </div>
-    </main>
+        {isCheckoutLoading && <div className="text-center mt-2 text-on-surface">Processing checkout...</div>}
+      </main>
+    </div>
   );
 }
