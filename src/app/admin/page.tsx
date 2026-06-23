@@ -249,6 +249,7 @@ export default function AdminPage() {
 
   return (
     <main className="flex-1 w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+      {/* [EOD_FINANCIAL_VIEWS] - Parent Container */}
       {/* Header Section */}
       <div className="col-span-1 lg:col-span-12 flex flex-col md:flex-row justify-between items-start md:items-center mb-stack-md gap-stack-md">
         <div>
@@ -437,6 +438,7 @@ export default function AdminPage() {
                   </div>
               </div>
 
+              {/* [DYNAMIC_PRODUCT_INSERTION_FORM] */}
               {/* Edit Form */}
               {isEditingProduct && (
                   <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-sm p-stack-md flex flex-col">
