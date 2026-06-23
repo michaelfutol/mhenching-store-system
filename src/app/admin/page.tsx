@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface ItemSale {
   name: string;
@@ -39,12 +40,84 @@ export default function AdminPage() {
   const fetchEODData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/eod');
-      if (!res.ok) throw new Error('Failed to fetch EOD data');
-      const data = await res.json();
-      setEodData(data);
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // Using the supabase client directly for the admin dashboard queries
+      const { data: transactions, error } = await supabase
+        .from('transactions')
+        .select(`
+            transaction_id,
+            attendant_id,
+            total_amount,
+            transaction_items (
+                product_id,
+                quantity,
+                unit_cost_at_sale,
+                subtotal,
+                products (
+                    name,
+                    tier
+                )
+            )
+        `)
+        .gte('timestamp', startOfDay.toISOString())
+        .lte('timestamp', endOfDay.toISOString());
+
+      if (error) throw error;
+
+      let totalRevenue = 0;
+      let totalCOGS = 0;
+      const itemSales: Record<string, { name: string; tier: string; qty: number; subtotal: number }> = {};
+      const attendantSales: Record<string, number> = {};
+
+      (transactions || []).forEach(tx => {
+        totalRevenue += Number(tx.total_amount);
+
+        // Attendant sales
+        if (!attendantSales[tx.attendant_id]) {
+            attendantSales[tx.attendant_id] = 0;
+        }
+        attendantSales[tx.attendant_id] += Number(tx.total_amount);
+
+        // Item sales
+        (tx.transaction_items || []).forEach((item: any) => {
+            totalCOGS += (Number(item.unit_cost_at_sale) * Number(item.quantity));
+            const key = item.product_id;
+
+            // Handle products that might have been deleted (should be restricted by FK, but safe check)
+            const pName = item.products?.name || 'Unknown';
+            const pTier = item.products?.tier || '';
+
+            if (!itemSales[key]) {
+            itemSales[key] = {
+                name: pName,
+                tier: pTier,
+                qty: 0,
+                subtotal: 0,
+            };
+            }
+            itemSales[key].qty += Number(item.quantity);
+            itemSales[key].subtotal += Number(item.subtotal);
+        });
+      });
+
+      const itemSalesList = Object.values(itemSales);
+
+      setEodData({
+          totalRevenue,
+          totalCOGS,
+          netProfit: totalRevenue - totalCOGS,
+          totalTransactions: transactions ? transactions.length : 0,
+          itemSales: itemSalesList,
+          attendantSales,
+      });
+
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load dashboard data:', err);
       alert('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -55,11 +128,21 @@ export default function AdminPage() {
     if (!confirm("Are you sure you want to close the day? This will lock today's transactions.")) return;
 
     try {
-      const res = await fetch('/api/eod/close', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to close day');
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
 
-      const resData = await res.json();
-      alert(`Day closed successfully. Locked ${resData.updatedCount} transactions.`);
+      const { data, error, count } = await supabase
+        .from('transactions')
+        .update({ closed: true })
+        .gte('timestamp', startOfDay.toISOString())
+        .lte('timestamp', endOfDay.toISOString())
+        .eq('closed', false);
+
+      if (error) throw error;
+
+      alert(`Day closed successfully. Locked transactions.`);
 
       // Export JSON
       if (eodData) {

@@ -5,9 +5,7 @@ import Scanner from '@/components/Scanner';
 import ProductSearch from '@/components/ProductSearch';
 import Cart from '@/components/Cart';
 import QuantityModal from '@/components/QuantityModal';
-import useSWR from 'swr';
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { supabase } from '@/lib/supabase';
 
 interface Product {
   product_id: string;
@@ -24,13 +22,44 @@ interface CartItem extends Product {
 }
 
 export default function Home() {
-  const { data: productsData } = useSWR('/api/products', fetcher, { refreshInterval: 5000 }); // Poll every 5s for real-time sync
-  const products = productsData?.products || [];
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [focusProductId, setFocusProductId] = useState<string | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [selectedProductForQuantity, setSelectedProductForQuantity] = useState<Product | null>(null);
+
+  useEffect(() => {
+    // Initial fetch
+    const fetchProducts = async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('product_id, name, tier, price, barcode, pack_multiplier');
+
+      if (error) {
+        console.error('Error fetching products:', error);
+      } else {
+        setProducts(data || []);
+      }
+    };
+
+    fetchProducts();
+
+    // Setup Supabase Realtime subscription
+    const channel = supabase.channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        (payload) => {
+           console.log('Real-time product update received', payload);
+           fetchProducts(); // Simple refetch on any change to keep it perfectly synced
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleProductSelectOrScan = (product: Product) => {
       setSelectedProductForQuantity(product);
@@ -81,28 +110,26 @@ export default function Home() {
     try {
       // In a real app, device_id and attendant_id would come from auth/context
       const payload = {
-        device_id: "device_01",
-        attendant_id: "attendant_a",
-        items: cartItems.map(item => ({
+        p_device_id: "device_01",
+        p_attendant_id: "attendant_a",
+        p_items: cartItems.map(item => ({
           product_id: item.product_id,
           quantity: item.quantity
         }))
       };
 
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const { data, error } = await supabase.rpc('process_checkout', payload);
 
-      if (!res.ok) throw new Error("Checkout failed");
+      if (error) {
+          throw error;
+      }
 
       // Success
       alert('Checkout Successful!');
       setCartItems([]);
       setFocusProductId(null);
     } catch (error) {
-      console.error(error);
+      console.error('Checkout error:', error);
       alert('Checkout failed. Please try again.');
     } finally {
       setIsCheckoutLoading(false);
