@@ -11,6 +11,8 @@ interface ItemSale {
 
 interface EODData {
   totalRevenue: number;
+  totalCOGS: number;
+  netProfit: number;
   totalTransactions: number;
   itemSales: ItemSale[];
   attendantSales: Record<string, number>;
@@ -120,14 +122,32 @@ export default function AdminPage() {
       ) : eodData ? (
       <>
       {/* Key Metrics Grid */}
-      <div className="col-span-1 lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-gutter mb-stack-lg">
+      <div className="col-span-1 lg:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-gutter mb-stack-lg">
         {/* Total Sales Card */}
         <div className="bg-surface-container-lowest border border-surface-variant rounded-xl p-stack-lg shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden">
           <div className="flex justify-between items-start mb-stack-md">
-            <h2 className="font-label-xl text-label-xl text-on-surface-variant">Gross Sales</h2>
+            <h2 className="font-label-xl text-label-xl text-on-surface-variant">Gross Revenue</h2>
             <span className="material-symbols-outlined text-primary bg-primary-fixed p-2 rounded-full">payments</span>
           </div>
-          <div className="font-display-price text-display-price text-on-background">₱{eodData.totalRevenue.toFixed(2)}</div>
+          <div className="font-display-price text-[28px] md:text-display-price text-on-background">₱{eodData.totalRevenue.toFixed(2)}</div>
+        </div>
+
+        {/* COGS Card */}
+        <div className="bg-surface-container-lowest border border-surface-variant rounded-xl p-stack-lg shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden">
+          <div className="flex justify-between items-start mb-stack-md">
+            <h2 className="font-label-xl text-label-xl text-on-surface-variant">COGS</h2>
+            <span className="material-symbols-outlined text-error bg-error-container p-2 rounded-full">shopping_cart</span>
+          </div>
+          <div className="font-display-price text-[28px] md:text-display-price text-on-background">₱{eodData.totalCOGS.toFixed(2)}</div>
+        </div>
+
+        {/* Net Profit Card */}
+        <div className="bg-surface-container-lowest border border-surface-variant rounded-xl p-stack-lg shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden">
+          <div className="flex justify-between items-start mb-stack-md">
+            <h2 className="font-label-xl text-label-xl text-on-surface-variant">Net Profit</h2>
+            <span className="material-symbols-outlined text-secondary bg-secondary-container p-2 rounded-full">trending_up</span>
+          </div>
+          <div className="font-display-price text-[28px] md:text-display-price text-on-background">₱{eodData.netProfit.toFixed(2)}</div>
         </div>
 
         {/* Transactions Card */}
@@ -136,13 +156,13 @@ export default function AdminPage() {
             <h2 className="font-label-xl text-label-xl text-on-surface-variant">Transactions</h2>
             <span className="material-symbols-outlined text-tertiary bg-tertiary-fixed p-2 rounded-full">receipt_long</span>
           </div>
-          <div className="font-display-price text-display-price text-on-background">{eodData.totalTransactions}</div>
+          <div className="font-display-price text-[28px] md:text-display-price text-on-background">{eodData.totalTransactions}</div>
         </div>
       </div>
 
-      <div className="col-span-1 lg:col-span-12 grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+      <div className="col-span-1 lg:col-span-12 grid grid-cols-1 lg:grid-cols-3 gap-gutter">
         {/* Details Section */}
-        <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col h-[500px]">
+        <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col h-[500px] lg:col-span-2">
           <div className="p-stack-md border-b border-surface-variant flex justify-between items-center bg-surface-container-low">
             <h2 className="font-label-xl text-label-xl text-on-surface">Item Breakdown</h2>
           </div>
@@ -168,21 +188,33 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Disabled Metrics Section */}
-        <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col h-[500px]">
-          <div className="p-stack-md border-b border-surface-variant flex justify-between items-center bg-surface-container-low">
-            <h2 className="font-label-xl text-label-xl text-on-surface">Sales by Attendant</h2>
-          </div>
-          <div className="flex-1 overflow-y-auto p-stack-md">
-            <ul className="divide-y divide-surface-variant">
-              {Object.entries(eodData.attendantSales).map(([attendant, total]) => (
-                <li key={attendant} className="py-3 flex justify-between">
-                  <span className="font-body-md text-body-md text-on-surface">{attendant}</span>
-                  <span className="font-mono-data text-mono-data text-on-surface font-medium">₱{total.toFixed(2)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="flex flex-col gap-gutter h-[500px]">
+            {/* Disabled Metrics Section */}
+            <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col flex-1">
+            <div className="p-stack-md border-b border-surface-variant flex justify-between items-center bg-surface-container-low">
+                <h2 className="font-label-xl text-label-xl text-on-surface">Sales by Attendant</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-stack-md">
+                <ul className="divide-y divide-surface-variant">
+                {Object.entries(eodData.attendantSales).map(([attendant, total]) => (
+                    <li key={attendant} className="py-3 flex justify-between">
+                    <span className="font-body-md text-body-md text-on-surface">{attendant}</span>
+                    <span className="font-mono-data text-mono-data text-on-surface font-medium">₱{total.toFixed(2)}</span>
+                    </li>
+                ))}
+                </ul>
+            </div>
+            </div>
+
+            {/* Product Management Link */}
+            <div className="bg-surface-container-lowest border border-surface-variant rounded-xl overflow-hidden shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] flex flex-col p-stack-md justify-center items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-4xl" style={{fontVariationSettings: "'FILL' 1"}}>inventory_2</span>
+                <h2 className="font-label-xl text-label-xl text-on-surface">Product Management</h2>
+                <p className="font-body-md text-body-md text-on-surface-variant text-center text-sm">Update prices, stock, and costs.</p>
+                <button className="mt-2 w-full h-10 bg-primary-container text-on-primary-container rounded-lg font-label-md hover:bg-primary hover:text-on-primary transition-colors">
+                    Manage Products
+                </button>
+            </div>
         </div>
       </div>
       </>

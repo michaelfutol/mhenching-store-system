@@ -24,11 +24,22 @@ export async function POST(request: Request) {
           throw new Error(`Product not found: ${item.product_id}`);
         }
 
+        if (product.current_stock_quantity < item.quantity) {
+             throw new Error(`Not enough stock for: ${product.name}`);
+        }
+
         const subtotal = product.price * item.quantity;
         total_amount += subtotal;
 
         item.price_at_sale = product.price;
+        item.unit_cost_at_sale = product.unit_cost || 0;
         item.subtotal = subtotal;
+
+        // Decrement stock
+        await tx.product.update({
+            where: { product_id: item.product_id },
+            data: { current_stock_quantity: { decrement: item.quantity } }
+        });
       }
 
       // Create transaction record
@@ -42,6 +53,7 @@ export async function POST(request: Request) {
               product_id: item.product_id,
               quantity: item.quantity,
               price_at_sale: item.price_at_sale,
+              unit_cost_at_sale: item.unit_cost_at_sale,
               subtotal: item.subtotal,
             })),
           },

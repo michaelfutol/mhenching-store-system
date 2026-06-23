@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     });
 
     let totalRevenue = 0;
+    let totalCOGS = 0;
     const itemSales: Record<string, { name: string; tier: string; qty: number; subtotal: number }> = {};
     const attendantSales: Record<string, number> = {};
 
@@ -50,6 +51,7 @@ export async function GET(request: Request) {
 
       // Item sales
       tx.items.forEach(item => {
+        totalCOGS += (item.unit_cost_at_sale * item.quantity);
         const key = item.product_id;
         if (!itemSales[key]) {
           itemSales[key] = {
@@ -68,6 +70,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       totalRevenue,
+      totalCOGS,
+      netProfit: totalRevenue - totalCOGS,
       totalTransactions: transactions.length,
       itemSales: itemSalesList,
       attendantSales,

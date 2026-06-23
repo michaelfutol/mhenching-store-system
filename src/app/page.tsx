@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import Scanner from '@/components/Scanner';
 import ProductSearch from '@/components/ProductSearch';
 import Cart from '@/components/Cart';
+import QuantityModal from '@/components/QuantityModal';
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface Product {
   product_id: string;
@@ -11,6 +15,7 @@ interface Product {
   tier: string | null;
   price: number;
   barcode: string | null;
+  pack_multiplier?: number;
 }
 
 interface CartItem extends Product {
@@ -19,41 +24,37 @@ interface CartItem extends Product {
 }
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { data: productsData } = useSWR('/api/products', fetcher, { refreshInterval: 5000 }); // Poll every 5s for real-time sync
+  const products = productsData?.products || [];
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [focusProductId, setFocusProductId] = useState<string | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [selectedProductForQuantity, setSelectedProductForQuantity] = useState<Product | null>(null);
 
-  // Fetch products once on mount for local-first search
-  useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.products) setProducts(data.products);
-      })
-      .catch(err => console.error("Failed to fetch products:", err));
-  }, []);
+  const handleProductSelectOrScan = (product: Product) => {
+      setSelectedProductForQuantity(product);
+  };
 
-  const handleAddProduct = (product: Product) => {
+  const handleConfirmQuantity = (product: Product, quantityToAdd: number) => {
     setCartItems(prev => {
       const existing = prev.find(item => item.product_id === product.product_id);
       if (existing) {
         return prev.map(item =>
           item.product_id === product.product_id
-            ? { ...item, quantity: item.quantity + 1, subtotal: (item.quantity + 1) * item.price }
+            ? { ...item, quantity: item.quantity + quantityToAdd, subtotal: (item.quantity + quantityToAdd) * item.price }
             : item
         );
       } else {
-        return [...prev, { ...product, quantity: 1, subtotal: product.price }];
+        return [...prev, { ...product, quantity: quantityToAdd, subtotal: product.price * quantityToAdd }];
       }
     });
-    setFocusProductId(product.product_id);
   };
 
   const handleScan = (decodedText: string) => {
-    const product = products.find(p => p.barcode === decodedText);
+    const product = products.find((p: Product) => p.barcode === decodedText);
     if (product) {
-      handleAddProduct(product);
+      handleProductSelectOrScan(product);
     } else {
       console.warn("Product not found for barcode:", decodedText);
     }
@@ -117,7 +118,7 @@ export default function Home() {
       </header>
       <main className="flex-grow flex flex-col relative overflow-y-auto">
         <Scanner onScan={handleScan} />
-        <ProductSearch products={products} onSelect={handleAddProduct} />
+        <ProductSearch products={products} onSelect={handleProductSelectOrScan} />
         <Cart
           items={cartItems}
           onUpdateQuantity={handleUpdateQuantity}
@@ -127,6 +128,12 @@ export default function Home() {
         />
         {isCheckoutLoading && <div className="text-center mt-2 text-on-surface">Processing checkout...</div>}
       </main>
+
+      <QuantityModal
+          product={selectedProductForQuantity}
+          onClose={() => setSelectedProductForQuantity(null)}
+          onConfirm={handleConfirmQuantity}
+      />
     </div>
   );
 }

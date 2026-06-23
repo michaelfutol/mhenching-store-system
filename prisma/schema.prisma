@@ -16,10 +16,12 @@ model Product {
   tier              String            @default("")
   price             Float
   barcode           String?           @unique
-  unit_cost         Float?
-  markup_percentage Float?
-  profit_margin     Float?
-  TransactionItem   TransactionItem[]
+  unit_cost              Float?
+  markup_percentage      Float?
+  profit_margin          Float?
+  current_stock_quantity Int               @default(0)
+  pack_multiplier        Int               @default(1)
+  TransactionItem        TransactionItem[]
 
   @@unique([name, tier])
 }
@@ -35,12 +37,13 @@ model Transaction {
 }
 
 model TransactionItem {
-  id             String      @id @default(uuid())
-  transaction_id String
-  product_id     String
-  quantity       Int
-  price_at_sale  Float
-  subtotal       Float
-  transaction    Transaction @relation(fields: [transaction_id], references: [transaction_id])
-  product        Product     @relation(fields: [product_id], references: [product_id])
+  id                String      @id @default(uuid())
+  transaction_id    String
+  product_id        String
+  quantity          Int
+  price_at_sale     Float
+  unit_cost_at_sale Float       @default(0)
+  subtotal          Float
+  transaction       Transaction @relation(fields: [transaction_id], references: [transaction_id])
+  product           Product     @relation(fields: [product_id], references: [product_id])
 }
