@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -24,7 +25,10 @@ export default function RootLayout({
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
           <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
       </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-background text-on-background`}>{children}</body>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans bg-background text-on-background`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

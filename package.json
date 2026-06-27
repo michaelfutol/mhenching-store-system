@@ -12,6 +12,7 @@
     "@capacitor/android": "^8.4.1",
     "@capacitor/core": "^8.4.1",
     "@supabase/supabase-js": "^2.108.2",
+    "@vercel/analytics": "^2.0.1",
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^1.21.0",
