@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Mhenching Store System
 
-## Getting Started
+Mhenching Store System is a serverless Next.js, Supabase, and Capacitor POS system for store attendants and management.
 
-First, run the development server:
+## Interfaces
+
+- Mobile POS: attendants use phones for barcode scanning, quantity entry, and checkout.
+- Web Admin Dashboard: management uses desktop or web for pricing, markups, stock, and EOD profit reports.
+- Mobile Admin Capture: management uses a phone camera to scan new item barcodes and capture product photos.
+- Restobar Mode: planned running bills for tables, groups, and customer tabs.
+- Accounts Receivable / Utang Ledger: planned credit tracking for approved pay-later customers.
+- Online Ordering: planned website, delivery, and social-channel order intake.
+- Business Analytics / AI Advisor Briefs: EOD and weekly structured reports that can be copied into external AI advisors.
+
+All interfaces share the same Supabase data source.
+
+## Current Build Focus
+
+Follow [MILESTONES.md](./MILESTONES.md) as the source of truth for build order, checklist status, and APK shipping steps.
+
+Immediate focus is applying the integrated Supabase upgrade, validating live same-day sales visibility, testing inventory intelligence fields, report cards, and copy/export advisor briefs, then Android phone validation.
+
+See [ANDROID_BUILD.md](./ANDROID_BUILD.md) for the repeatable debug APK build commands.
+
+## Local Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` for the POS and `http://localhost:3000/admin` for the web admin dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Use `http://localhost:3000/admin/capture` on a phone for barcode scan plus item photo capture.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Required Environment
 
-## Learn More
+Create `.env.local` with:
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_ANON_KEY]
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+See [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for database setup.

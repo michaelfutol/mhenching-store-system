@@ -1,0 +1,6 @@
+item_number,barcode,name,tier,price,unit_cost,current_stock_quantity,pack_multiplier,reorder_point,is_perishable,expiry_date
+1,4800016644804,Mega Sardines Tomato Sauce (Red),Canned Goods,30.00,25.00,12,50,5,false,2028-12-31
+2,4800016644811,Mega Sardines Green (with Chili),Canned Goods,30.00,25.00,12,50,5,false,2028-12-31
+3,4800002100802,Coca-Cola 1.5L,Beverages,70.00,60.00,24,12,6,false,
+4,4800067001465,San Miguel Pale Pilsen 330ml Can,Liquor,55.00,47.00,48,24,12,false,
+5,,Lucky Me Instant Noodles Chicken,Instant Food,15.00,12.50,36,72,10,false,2027-08-15

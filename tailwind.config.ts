@@ -59,7 +59,10 @@ const config: Config = {
         "tertiary": "#825100",
         "surface-container-high": "#e6e8ea",
         "surface-container": "#eceef0",
-        "on-primary-fixed": "#001a42"
+        "on-primary-fixed": "#001a42",
+        "background": "#f7f9fb",
+        "on-primary-fixed-variant-dim": "#003a80",
+        "primary-fixed-variant": "#d0dcf5"
       },
       borderRadius: {
         "DEFAULT": "0.5rem",
@@ -84,6 +87,7 @@ const config: Config = {
         "body-lg": "var(--font-inter)",
         "display-price": "var(--font-inter)",
         "label-xl": "var(--font-inter)",
+        "label-xl-mobile": "var(--font-inter)",
         "mono-data": "var(--font-jetbrains-mono)",
         "sans": "var(--font-inter)"
       },
@@ -95,6 +99,7 @@ const config: Config = {
         "body-lg": "18px",
         "display-price": "40px",
         "label-xl": "16px",
+        "label-xl-mobile": "14px",
         "mono-data": "14px"
       },
       fontWeight: {
@@ -105,6 +110,7 @@ const config: Config = {
         "body-lg": "500",
         "display-price": "700",
         "label-xl": "600",
+        "label-xl-mobile": "600",
         "mono-data": "500"
       },
       lineHeight: {
@@ -115,6 +121,7 @@ const config: Config = {
         "body-lg": "26px",
         "display-price": "48px",
         "label-xl": "20px",
+        "label-xl-mobile": "18px",
         "mono-data": "20px"
       },
       letterSpacing: {

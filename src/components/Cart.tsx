@@ -1,30 +1,46 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import {
+  createDefaultPaymentDetails,
+  paymentMethodOptions,
+  type PaymentDetails,
+  type PaymentMethod,
+} from '@/lib/payments';
+import type { CartItem } from '@/types';
 
-interface Product {
-  product_id: string;
-  name: string;
-  tier: string | null;
-  price: number;
-}
 
-interface CartItem extends Product {
-  quantity: number;
-  subtotal: number;
-}
 
 interface CartProps {
   items: CartItem[];
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onRemove: (productId: string) => void;
-  onCheckout: () => void;
+  onCheckout: (paymentDetails: PaymentDetails) => void;
   focusProductId: string | null;
+  title?: string;
+  checkoutLabel?: string;
+  showPaymentFields?: boolean;
+  disabled?: boolean;
 }
 
-export default function Cart({ items, onUpdateQuantity, onRemove, onCheckout, focusProductId }: CartProps) {
+export default function Cart({
+  items,
+  onUpdateQuantity,
+  onRemove,
+  onCheckout,
+  focusProductId,
+  title = 'Current Order',
+  checkoutLabel = 'Proceed / Finalize Sale',
+  showPaymentFields = true,
+  disabled = false,
+}: CartProps) {
   const total = items.reduce((sum, item) => sum + item.subtotal, 0);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>(createDefaultPaymentDetails);
+
+  const setPaymentField = <K extends keyof PaymentDetails>(field: K, value: PaymentDetails[K]) => {
+    setPaymentDetails((current) => ({ ...current, [field]: value }));
+  };
 
   useEffect(() => {
     if (focusProductId && inputRefs.current[focusProductId]) {
@@ -34,14 +50,20 @@ export default function Cart({ items, onUpdateQuantity, onRemove, onCheckout, fo
     }
   }, [focusProductId, items.length]); // trigger on item change too just in case
 
+  useEffect(() => {
+    if (items.length === 0) {
+      setPaymentDetails(createDefaultPaymentDetails());
+    }
+  }, [items.length]);
+
   if (items.length === 0) {
-    return <div className="text-center p-4 text-gray-500">Cart is empty</div>;
+    return <div className="text-center p-4 text-on-surface-variant">Cart is empty</div>;
   }
 
   return (
-    <div className="flex flex-col flex-grow w-full max-w-md mx-auto relative md:min-h-[600px] pb-32">
+    <div className={`flex flex-col flex-grow w-full max-w-md mx-auto relative md:min-h-[600px] ${showPaymentFields ? 'pb-80' : 'pb-40'}`}>
         <div className="px-margin-mobile py-stack-lg flex items-center justify-between gap-stack-sm bg-surface-container-lowest border-b border-surface-variant">
-            <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight">Current Order <span className="text-on-surface-variant font-normal">({items.length} items)</span></h2>
+            <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight">{title} <span className="text-on-surface-variant font-normal">({items.length} items)</span></h2>
         </div>
 
       <div className="px-margin-mobile py-stack-md flex flex-col gap-stack-sm">
@@ -81,12 +103,82 @@ export default function Cart({ items, onUpdateQuantity, onRemove, onCheckout, fo
                 <span className="font-label-xl text-label-xl text-on-surface mb-1">Grand Total</span>
                 <span className="font-display-price text-display-price text-on-surface tracking-tighter">₱{total.toFixed(2)}</span>
             </div>
+            {showPaymentFields && (
+                <div className="grid grid-cols-2 gap-2">
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                        Payment
+                        <select
+                            value={paymentDetails.method}
+                            onChange={(event) => setPaymentField('method', event.target.value as PaymentMethod)}
+                            className="h-11 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface font-label-md"
+                        >
+                            {paymentMethodOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                        Amount
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
+                            value={paymentDetails.amountReceived}
+                            onChange={(event) => setPaymentField('amountReceived', event.target.value)}
+                            placeholder={total.toFixed(2)}
+                            className="h-11 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface font-mono-data"
+                        />
+                    </label>
+                </div>
+            )}
+
+            {showPaymentFields && paymentDetails.method !== 'cash' && (
+                <label className="flex flex-col gap-1 text-on-surface-variant font-label-md text-label-md">
+                    Reference
+                    <input
+                        type="text"
+                        value={paymentDetails.reference}
+                        onChange={(event) => setPaymentField('reference', event.target.value)}
+                        placeholder="GCash/Maya/card/USDT reference"
+                        className="h-11 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface"
+                    />
+                </label>
+            )}
+
+            {showPaymentFields && paymentDetails.method === 'utang_ledger' && (
+                <div className="grid grid-cols-1 gap-2 rounded-lg border border-tertiary/30 bg-tertiary-fixed/40 p-2">
+                    <input
+                        type="text"
+                        value={paymentDetails.arCustomerName}
+                        onChange={(event) => setPaymentField('arCustomerName', event.target.value)}
+                        placeholder="Customer name"
+                        className="h-11 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                        <input
+                            type="text"
+                            value={paymentDetails.arContactInfo}
+                            onChange={(event) => setPaymentField('arContactInfo', event.target.value)}
+                            placeholder="Contact"
+                            className="h-11 min-w-0 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface"
+                        />
+                        <input
+                            type="date"
+                            value={paymentDetails.arDueDate}
+                            onChange={(event) => setPaymentField('arDueDate', event.target.value)}
+                            className="h-11 min-w-0 rounded-lg border border-surface-variant bg-surface px-3 text-on-surface"
+                        />
+                    </div>
+                </div>
+            )}
             <button
-                onClick={onCheckout}
-                className="w-full h-16 bg-secondary text-on-secondary rounded-xl font-label-xl text-label-xl flex items-center justify-center gap-2 hover:bg-secondary/90 active:scale-[0.98] transition-all duration-150 shadow-lg shadow-secondary/20"
+                onClick={() => onCheckout(paymentDetails)}
+                disabled={disabled}
+                className="w-full h-16 bg-secondary text-on-secondary rounded-xl font-label-xl text-label-xl flex items-center justify-center gap-2 hover:bg-secondary/90 active:scale-[0.98] transition-all duration-150 shadow-lg shadow-secondary/20 disabled:opacity-60 disabled:active:scale-100"
             >
                 <span className="material-symbols-outlined" style={{fontVariationSettings: "'FILL' 1"}}>receipt_long</span>
-                Proceed / Finalize Sale
+                {checkoutLabel}
             </button>
       </div>
     </div>

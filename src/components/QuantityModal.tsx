@@ -1,15 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
+import type { Product } from '@/types';
 
-interface Product {
-  product_id: string;
-  name: string;
-  tier: string | null;
-  price: number;
-  barcode: string | null;
-  pack_multiplier?: number;
-}
+
 
 interface QuantityModalProps {
   product: Product | null;

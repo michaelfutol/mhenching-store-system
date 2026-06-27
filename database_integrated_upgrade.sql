@@ -1,4 +1,6 @@
--- Database Schema for Supabase Serverless Setup
+-- Existing database upgrade for restobar bills, payment tracking, utang ledger,
+-- omnichannel orders, and inventory expiry/batch analytics.
+-- Run this once on the existing Supabase project after database_schema.sql was applied.
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -23,34 +25,17 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
         CREATE TYPE payment_method AS ENUM ('cash', 'gcash', 'maya_qr', 'card_terminal', 'usdt_manual', 'utang_ledger');
     END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'pos_cart_status') THEN
-        CREATE TYPE pos_cart_status AS ENUM ('active', 'checked_out', 'voided', 'abandoned');
-    END IF;
 END $$;
 
--- 1. Products Table
-CREATE TABLE IF NOT EXISTS products (
-    product_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,
-    tier TEXT DEFAULT '',
-    price NUMERIC NOT NULL CHECK (price >= 0),
-    barcode TEXT UNIQUE,
-    unit_cost NUMERIC CHECK (unit_cost IS NULL OR unit_cost >= 0),
-    markup_percentage NUMERIC CHECK (markup_percentage IS NULL OR markup_percentage >= 0),
-    profit_margin NUMERIC,
-    image_path TEXT,
-    current_stock_quantity INTEGER DEFAULT 0 CHECK (current_stock_quantity >= 0),
-    pack_multiplier INTEGER DEFAULT 1 CHECK (pack_multiplier >= 1),
-    is_perishable BOOLEAN DEFAULT FALSE,
-    reorder_point INTEGER DEFAULT 0 CHECK (reorder_point >= 0),
-    received_date TIMESTAMP WITH TIME ZONE,
-    expiry_date TIMESTAMP WITH TIME ZONE,
-    batch_number TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+ALTER TYPE bill_session_status ADD VALUE IF NOT EXISTS 'partially_paid';
 
--- 2. Accounts Receivable / Utang Ledger
+ALTER TABLE products
+ADD COLUMN IF NOT EXISTS received_date TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS expiry_date TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS batch_number TEXT,
+ADD COLUMN IF NOT EXISTS is_perishable BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS reorder_point INTEGER DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS accounts_receivable (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer_name TEXT NOT NULL,
@@ -67,41 +52,13 @@ CREATE TABLE IF NOT EXISTS accounts_receivable (
         CHECK (remaining_balance <= total_amount_owed)
 );
 
--- 3. Transactions Table
-CREATE TABLE IF NOT EXISTS transactions (
-    transaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    device_id TEXT NOT NULL,
-    attendant_id TEXT NOT NULL,
-    total_amount NUMERIC NOT NULL CHECK (total_amount >= 0),
-    payment_method payment_method NOT NULL DEFAULT 'cash',
-    payment_reference TEXT,
-    amount_paid NUMERIC CHECK (amount_paid IS NULL OR amount_paid >= 0),
-    change_due NUMERIC DEFAULT 0 CHECK (change_due >= 0),
-    accounts_receivable_id UUID REFERENCES accounts_receivable(id) ON DELETE SET NULL,
-    voided BOOLEAN DEFAULT FALSE,
-    voided_at TIMESTAMP WITH TIME ZONE,
-    voided_by TEXT,
-    void_reason TEXT,
-    closed BOOLEAN DEFAULT FALSE
-);
+ALTER TABLE transactions
+ADD COLUMN IF NOT EXISTS payment_method payment_method NOT NULL DEFAULT 'cash',
+ADD COLUMN IF NOT EXISTS payment_reference TEXT,
+ADD COLUMN IF NOT EXISTS amount_paid NUMERIC,
+ADD COLUMN IF NOT EXISTS change_due NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS accounts_receivable_id UUID REFERENCES accounts_receivable(id) ON DELETE SET NULL;
 
--- 4. Transaction Items Table
-CREATE TABLE IF NOT EXISTS transaction_items (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    transaction_id UUID REFERENCES transactions(transaction_id) ON DELETE CASCADE,
-    product_id UUID REFERENCES products(product_id) ON DELETE RESTRICT,
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
-    price_at_sale NUMERIC NOT NULL CHECK (price_at_sale >= 0),
-    unit_cost_at_sale NUMERIC DEFAULT 0 CHECK (unit_cost_at_sale >= 0),
-    subtotal NUMERIC NOT NULL CHECK (subtotal >= 0),
-    voided BOOLEAN DEFAULT FALSE,
-    voided_at TIMESTAMP WITH TIME ZONE,
-    voided_by TEXT,
-    void_reason TEXT
-);
-
--- 5. Restobar Running Bills
 CREATE TABLE IF NOT EXISTS bill_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     table_or_group_name TEXT NOT NULL,
@@ -123,42 +80,9 @@ CREATE TABLE IF NOT EXISTS bill_items (
     unit_cost_at_sale NUMERIC DEFAULT 0 CHECK (unit_cost_at_sale >= 0),
     subtotal NUMERIC NOT NULL CHECK (subtotal >= 0),
     voided BOOLEAN DEFAULT FALSE,
-    voided_at TIMESTAMP WITH TIME ZONE,
-    voided_by TEXT,
-    void_reason TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. Live POS Cart Monitor
-CREATE TABLE IF NOT EXISTS pos_cart_sessions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    session_key TEXT NOT NULL UNIQUE,
-    device_id TEXT NOT NULL,
-    attendant_id TEXT NOT NULL,
-    mode TEXT NOT NULL DEFAULT 'quick_sale',
-    bill_session_id UUID REFERENCES bill_sessions(id) ON DELETE SET NULL,
-    status pos_cart_status NOT NULL DEFAULT 'active',
-    total_amount NUMERIC NOT NULL DEFAULT 0 CHECK (total_amount >= 0),
-    item_count INTEGER NOT NULL DEFAULT 0 CHECK (item_count >= 0),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pos_cart_items (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    cart_session_id UUID NOT NULL REFERENCES pos_cart_sessions(id) ON DELETE CASCADE,
-    product_id UUID REFERENCES products(product_id) ON DELETE SET NULL,
-    product_name TEXT NOT NULL,
-    product_tier TEXT DEFAULT '',
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
-    price_at_sale NUMERIC NOT NULL CHECK (price_at_sale >= 0),
-    subtotal NUMERIC NOT NULL CHECK (subtotal >= 0),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE (cart_session_id, product_id)
-);
-
--- 7. Unified Omnichannel Orders
 CREATE TABLE IF NOT EXISTS orders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_channel order_channel NOT NULL DEFAULT 'pos',
@@ -175,31 +99,21 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
 CREATE INDEX IF NOT EXISTS idx_products_expiry_date ON products(expiry_date) WHERE expiry_date IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_products_received_date ON products(received_date) WHERE received_date IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_transactions_timestamp ON transactions(timestamp);
-CREATE INDEX IF NOT EXISTS idx_transactions_closed ON transactions(closed);
 CREATE INDEX IF NOT EXISTS idx_transactions_payment_method ON transactions(payment_method);
 CREATE INDEX IF NOT EXISTS idx_transactions_accounts_receivable_id ON transactions(accounts_receivable_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_voided ON transactions(voided);
 CREATE INDEX IF NOT EXISTS idx_transaction_items_transaction_id ON transaction_items(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_transaction_items_product_id ON transaction_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_transaction_items_voided ON transaction_items(voided);
 CREATE INDEX IF NOT EXISTS idx_bill_sessions_status ON bill_sessions(status);
 CREATE INDEX IF NOT EXISTS idx_bill_items_session_id ON bill_items(session_id);
 CREATE INDEX IF NOT EXISTS idx_bill_items_product_id ON bill_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_pos_cart_sessions_status_updated ON pos_cart_sessions(status, updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_pos_cart_sessions_attendant ON pos_cart_sessions(attendant_id);
-CREATE INDEX IF NOT EXISTS idx_pos_cart_items_session_id ON pos_cart_items(cart_session_id);
-CREATE INDEX IF NOT EXISTS idx_pos_cart_items_product_id ON pos_cart_items(product_id);
 CREATE INDEX IF NOT EXISTS idx_accounts_receivable_status_due ON accounts_receivable(status, due_date);
 CREATE INDEX IF NOT EXISTS idx_orders_channel_status ON orders(order_channel, delivery_status);
 CREATE INDEX IF NOT EXISTS idx_orders_transaction_id ON orders(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_orders_bill_session_id ON orders(bill_session_id);
 CREATE INDEX IF NOT EXISTS idx_orders_accounts_receivable_id ON orders(accounts_receivable_id);
 
--- Turn on Realtime for client sync.
 DO $$
 DECLARE
     v_table TEXT;
@@ -210,8 +124,6 @@ BEGIN
         'transaction_items',
         'bill_sessions',
         'bill_items',
-        'pos_cart_sessions',
-        'pos_cart_items',
         'accounts_receivable',
         'orders'
     ]
@@ -227,48 +139,6 @@ BEGIN
     END LOOP;
 END $$;
 
--- Product photo storage bucket.
--- Public reads allow product photos to render in POS/Admin without signed URL churn.
--- Upload/update policies below are MVP-open because the current app uses a local PIN
--- rather than Supabase Auth. Tighten these once authenticated admin accounts land.
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-    'product-images',
-    'product-images',
-    TRUE,
-    5242880,
-    ARRAY['image/jpeg', 'image/png', 'image/webp']
-)
-ON CONFLICT (id) DO UPDATE
-SET
-    public = EXCLUDED.public,
-    file_size_limit = EXCLUDED.file_size_limit,
-    allowed_mime_types = EXCLUDED.allowed_mime_types;
-
-DROP POLICY IF EXISTS "Product images are publicly readable" ON storage.objects;
-CREATE POLICY "Product images are publicly readable"
-ON storage.objects
-FOR SELECT
-TO anon, authenticated
-USING (bucket_id = 'product-images');
-
-DROP POLICY IF EXISTS "MVP clients can upload product images" ON storage.objects;
-CREATE POLICY "MVP clients can upload product images"
-ON storage.objects
-FOR INSERT
-TO anon, authenticated
-WITH CHECK (bucket_id = 'product-images');
-
-DROP POLICY IF EXISTS "MVP clients can replace product images" ON storage.objects;
-CREATE POLICY "MVP clients can replace product images"
-ON storage.objects
-FOR UPDATE
-TO anon, authenticated
-USING (bucket_id = 'product-images')
-WITH CHECK (bucket_id = 'product-images');
-
--- 7. Payment-aware Atomic Checkout RPC Function
--- This function processes checkout server-side and records payment metadata.
 CREATE OR REPLACE FUNCTION process_checkout_with_payment(
     p_device_id TEXT,
     p_attendant_id TEXT,
@@ -315,14 +185,7 @@ BEGIN
         END IF;
     END IF;
 
-    INSERT INTO transactions (
-        device_id,
-        attendant_id,
-        total_amount,
-        payment_method,
-        payment_reference,
-        amount_paid
-    )
+    INSERT INTO transactions (device_id, attendant_id, total_amount, payment_method, payment_reference, amount_paid)
     VALUES (
         p_device_id,
         p_attendant_id,
@@ -442,7 +305,6 @@ BEGIN
 END;
 $$;
 
--- Backward-compatible wrapper for the original POS checkout call.
 CREATE OR REPLACE FUNCTION process_checkout(
     p_device_id TEXT,
     p_attendant_id TEXT,
@@ -452,33 +314,16 @@ LANGUAGE plpgsql
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    RETURN process_checkout_with_payment(
-        p_device_id,
-        p_attendant_id,
-        p_items,
-        'cash',
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        'pos'
-    );
+    RETURN process_checkout_with_payment(p_device_id, p_attendant_id, p_items, 'cash', NULL, NULL, NULL, NULL, NULL, 'pos');
 END;
 $$;
 
--- MVP public-client grants and RLS policies.
--- The current app uses the publishable anon key from browser/mobile clients.
--- These policies intentionally allow the current MVP flows and should be
--- tightened when Supabase Auth-backed admin and attendant roles are added.
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON products TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON transactions TO anon, authenticated;
 GRANT SELECT, INSERT ON transaction_items TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON bill_sessions TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON bill_items TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON pos_cart_sessions TO anon, authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON pos_cart_items TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON accounts_receivable TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON orders TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION process_checkout(TEXT, TEXT, JSONB) TO anon, authenticated;
@@ -489,8 +334,6 @@ ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transaction_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bill_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bill_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pos_cart_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pos_cart_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE accounts_receivable ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 
@@ -499,78 +342,27 @@ DROP POLICY IF EXISTS "MVP clients can insert products" ON products;
 DROP POLICY IF EXISTS "MVP clients can update products" ON products;
 DROP POLICY IF EXISTS "MVP clients can delete products" ON products;
 DROP POLICY IF EXISTS "MVP clients can manage products" ON products;
-CREATE POLICY "MVP clients can manage products"
-ON products
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage products" ON products FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can read transactions" ON transactions;
 DROP POLICY IF EXISTS "MVP clients can insert transactions" ON transactions;
 DROP POLICY IF EXISTS "MVP clients can update transactions" ON transactions;
 DROP POLICY IF EXISTS "MVP clients can manage transactions" ON transactions;
-CREATE POLICY "MVP clients can manage transactions"
-ON transactions
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage transactions" ON transactions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can read transaction items" ON transaction_items;
 DROP POLICY IF EXISTS "MVP clients can insert transaction items" ON transaction_items;
 DROP POLICY IF EXISTS "MVP clients can manage transaction items" ON transaction_items;
-CREATE POLICY "MVP clients can manage transaction items"
-ON transaction_items
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage transaction items" ON transaction_items FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can manage bill sessions" ON bill_sessions;
-CREATE POLICY "MVP clients can manage bill sessions"
-ON bill_sessions
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage bill sessions" ON bill_sessions FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can manage bill items" ON bill_items;
-CREATE POLICY "MVP clients can manage bill items"
-ON bill_items
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "MVP clients can manage POS cart sessions" ON pos_cart_sessions;
-CREATE POLICY "MVP clients can manage POS cart sessions"
-ON pos_cart_sessions
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "MVP clients can manage POS cart items" ON pos_cart_items;
-CREATE POLICY "MVP clients can manage POS cart items"
-ON pos_cart_items
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage bill items" ON bill_items FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can manage accounts receivable" ON accounts_receivable;
-CREATE POLICY "MVP clients can manage accounts receivable"
-ON accounts_receivable
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage accounts receivable" ON accounts_receivable FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "MVP clients can manage orders" ON orders;
-CREATE POLICY "MVP clients can manage orders"
-ON orders
-FOR ALL
-TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+CREATE POLICY "MVP clients can manage orders" ON orders FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
