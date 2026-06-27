@@ -1380,6 +1380,17 @@ export default function AdminPage() {
     router.push('/');
   };
 
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('mhenching-admin-auth');
+      window.localStorage.setItem('mhenching-last-admin-route', '/');
+    }
+    setIsAuthenticated(false);
+    setPin('');
+    router.push('/');
+  };
+
   const fetchProducts = useCallback(async () => {
     const productSelect = 'product_id,name,tier,price,barcode,unit_cost,markup_percentage,profit_margin,image_path,current_stock_quantity,pack_multiplier,received_date,expiry_date,batch_number,is_perishable,reorder_point';
     const legacyProductSelect = 'product_id,name,tier,price,barcode,unit_cost,markup_percentage,profit_margin,image_path,current_stock_quantity,pack_multiplier';
@@ -2467,6 +2478,9 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-2">
           <button onClick={handleExitAdmin} className="bg-surface-dim text-on-surface h-touch-target-min px-6 rounded-lg font-label-xl text-label-xl hover:bg-surface-container active:scale-95 transition-all flex items-center justify-center gap-2">
             Back to POS
+          </button>
+          <button onClick={handleLogout} className="bg-error-container text-error h-touch-target-min px-6 rounded-lg font-label-xl text-label-xl hover:bg-error hover:text-on-error active:scale-95 transition-all flex items-center justify-center gap-2">
+            Logout
           </button>
           {activeTab === 'dashboard' && (
             <>
